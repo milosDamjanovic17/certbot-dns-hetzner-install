@@ -1,6 +1,50 @@
 #!/usr/bin/env bash
 
-# First of all, check if snapd is installed
+# check if APT version existss
+echo "===> Checking if APT based certbot exists"
+
+if dpkg -l | grep -q "^ii certbot"; then
+   echo "===> WARNING! APT version of Certbot is installed."
+   echo "===> Running both APT + SNAPD vesions will cause conflicts"
+   HAS_APT_CERTBOT=true
+else
+   echo "====> No APT-based Certbot installation found."
+   HAS_APT_CERTBOT=false
+fi
+
+# remove apt based certbot if it exists
+if [[ "$HAS_APT_CERTBOT" == true ]]; then
+   echo
+   echo "===> APT version of certbot exists"
+   echo "===> This will conflict with the Snap version"
+
+   while true; do
+      read -p "Do you want to remove the APT Certbot package? (y/n): " REMOVE_APT
+
+      case "$REMOVE_APT" in
+         y|Y)
+            echo "===> Removing APT Certbot (configs not purged)"
+            if sudo apt remove -y certbot; then
+               echo "===> APT version removed successfully."
+            else
+               echo "===> ERROR: Failed to remove APT Certbot. Resolve this manually and re-run the script."
+               exit 1
+            fi
+            break
+            ;;
+         n|N)
+            echo "===> Cannot continue with APT certbot isntalled. Exitin...."
+            exit 1
+            ;;
+         *)
+            echo "===> Invalid option. Enter 'y' or 'n' (or Ctrl+C to exit)"
+            ;;
+      esac
+   done
+fi
+
+
+# check if snapd is instaled
 if ! command -v snap >/dev/null 2>&1; then
    echo "===> snapd is NOT installed"
    
