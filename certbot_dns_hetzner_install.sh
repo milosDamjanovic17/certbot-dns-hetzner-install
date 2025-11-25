@@ -177,8 +177,9 @@ fi
 
 
 # check if certificate exists and run dry run renewal
-# *****DUEO TO CHANGE since there are two ways to implement this, either by checking the absolute path or via certbot certificates command
-# pattern for checking the absolute path
+# *****DUE TO CHANGE since there are two ways to implement this, either by checking the absolute path or via certbot certificates command
+# pattern for checking the absolute path, before that we have to strip the entered domain because searching the path with *. will result an error, we have to remove *. part of the string
+$ENTERED_DOMAIN="${ENTERED_DOMAIN#??}"
 CERT_PATH="/etc/letsencrypt/live/$ENTERED_DOMAIN/fullchain.pem"
 
 echo
