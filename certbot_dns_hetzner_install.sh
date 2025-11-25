@@ -46,6 +46,7 @@ run_or_fail_check() {
 run_or_fail_check "sudo snap install core" "Installing snap core"
 run_or_fail_check "sudo snap install --classic certbot" "Installing Certbot"
 run_or_fail_check "sudo snap set certbot trust-plugin-with-root=ok" "Setting Certbot to trust plugins"
+run_or_fail_check "sudo snap install certbot-dns-hetzner-cloud"
 
 # connecting the plugin
 run_or_fail_check "sudo snap connect certbot:plugin certbot-dns-hetzner-cloud" "Connecting Certbot Hetzner plugin"
@@ -175,8 +176,8 @@ else
 fi
 
 
-# check if certificate exists and dry run renewal
-# *****due to change since there are two ways to implement this, either by checking the absolute path or via certbot certificates command
+# check if certificate exists and run dry run renewal
+# *****DUEO TO CHANGE since there are two ways to implement this, either by checking the absolute path or via certbot certificates command
 # pattern for checking the absolute path
 CERT_PATH="/etc/letsencrypt/live/$ENTERED_DOMAIN/fullchain.pem"
 
