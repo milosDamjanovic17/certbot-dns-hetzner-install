@@ -136,16 +136,16 @@ while true; do
       n|N)
          # ask for custom path and VALIDATE, WICHTIG! Path must exist!
          while true; do
-            read -p "===> Enter the ABSOLUTE path where hetzner-cloud.ini should be stored(Make sure that path exists!) using the format: /path/to/hetzner-cloud.ini " custom_path
+            read -r -p "===> Enter the ABSOLUTE path to hetzner-cloud.ini or other .ini where you want to store the token (file MUST already exist):  " custom_path
 
             if [[ -z "$custom_path" ]]; then
                echo "===> PATH cannot be empty. Try again....."
                continue
             fi
             # Validate that path exists
-            dir=$(dirname "$custom_path")
-            if [[ ! -d "$dir" ]]; then
-               echo "===> Directory '$dir' does NOT exist. Enter a valid path."
+            #dir=$(dirname "$custom_path")
+            if [[ ! -f "$custom_path" ]]; then
+               echo "===> File '$custom_path' does NOT exist. Enter a valid path."
                continue
             fi
 
@@ -208,7 +208,7 @@ echo "===> Requesting certificate for $ENTERED_DOMAIN ..."
 if [[ "$INI_PATH" == "/etc/letsencrypt/hetzner-cloud.ini" ]]; then
     sudo certbot certonly --agree-tos --authenticator dns-hetzner-cloud -d "$ENTERED_DOMAIN"
 else
-    sudo certbot certonly --agree-tos --dns-hetzner-cloud-credentials "$INI_PATH" -d "$ENTERED_DOMAIN"
+    sudo certbot certonly --agree-tos --dns-hetzner-cloud-credentials "$INI_PATH" --authenticator dns-hetzner-cloud -d "$ENTERED_DOMAIN"
 fi
 
 # sanity check if certbot command succeeded
