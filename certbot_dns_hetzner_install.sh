@@ -95,7 +95,7 @@ run_or_fail_check "sudo snap install certbot-dns-hetzner-cloud"
 # connecting the plugin
 run_or_fail_check "sudo snap connect certbot:plugin certbot-dns-hetzner-cloud" "Connecting Certbot Hetzner plugin"
 
-echo "===> Certbot + Hetzner DNS plugin successfully installed and configured. Proceeding with DNS "
+echo "===> Certbot + Hetzner DNS plugin successfully installed and configured. Proceeding with creating wildcard cert via DNS-Challenge"
 
 # Check if certbot successfully loaded the plugin
 echo "===> Verifying Certbot plugin installtion....."
@@ -136,7 +136,7 @@ while true; do
       n|N)
          # ask for custom path and VALIDATE, WICHTIG! Path must exist!
          while true; do
-            read -p "===> Enter the FULL path where hetzner-cloud.ini should be stored(Make sure that path exists!): " custom_path
+            read -p "===> Enter the ABSOLUTE path where hetzner-cloud.ini should be stored(Make sure that path exists!) using the format: /path/to/hetzner-cloud.ini " custom_path
 
             if [[ -z "$custom_path" ]]; then
                echo "===> PATH cannot be empty. Try again....."
