@@ -3,7 +3,7 @@
 # check if APT version existss
 echo "===> Checking if APT based certbot exists"
 
-if dpkg -l | grep -q "^ii certbot"; then
+if dpkg -l | grep -q "ii  certbot"; then
    echo "===> WARNING! APT version of Certbot is installed."
    echo "===> Running both APT + SNAPD vesions will cause conflicts"
    HAS_APT_CERTBOT=true
