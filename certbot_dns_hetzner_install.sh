@@ -243,11 +243,8 @@ echo "===> Running Certbot dry-run renewal to verify renewal process..."
 
 if sudo certbot renew --dry-run; then
     echo "===> Dry-run renewal successful. Certificate setup complete.."
+    echo "===> run 'certbot delete' To check and delete any obsolete certificates ..."
 else
     echo "===> ERROR: Dry-run renewal failed. Check Certbot configuration and plugin."
     exit 1
 fi
-
-
-# TODO - #1 Add a logic for checking if certbot exists but its executed from APT, if yees, remove the APT version and merge it to SNAPD
-# #2 Add a cleanup where it shows the user which certificates exist in certbot and opt him to remove the certificate
