@@ -74,7 +74,7 @@ What the Script Does
 
     to ensure renewal will work with no unexpected errors later.
 
-Notes:
+Notes
 
     The script is fully interactive and validates every important input.
 
