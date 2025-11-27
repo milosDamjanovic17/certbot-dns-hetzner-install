@@ -8,6 +8,8 @@ If DNS Challenge doesn't complete before the time defined, certbot will register
 Recommended is either 60s or 75s.
 You can update the default wait time by appending  dns-hetzner-cloud-propagation-seconds = 60 in /etc/letsencrypt/cli.ini
 
+dns-hetzner-cloud-propagation-seconds = 60
+
 What the Script Does
 1. Detects APT-based Certbot
 
