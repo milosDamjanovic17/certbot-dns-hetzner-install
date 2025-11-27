@@ -23,14 +23,14 @@ What the Script Does
 
     Installs:
 
-        core
+    core
 
-        certbot (Snap version)
+    certbot (Snap version)
 
-        certbot-dns-hetzner-cloud plugin
+    certbot-dns-hetzner-cloud plugin
 
-        Enables trust-plugin-with-root, which is required for DNS plugins.
-        This is safe: Snap plugins are verified packages and maintained upstream.
+    Enables trust-plugin-with-root, which is required for DNS plugins.
+    This is safe: Snap plugins are verified packages and maintained upstream.
 
 3. Validates Plugin Installation
 
@@ -70,9 +70,9 @@ What the Script Does
 
     Runs:
 
-        certbot renew --dry-run
+    certbot renew --dry-run
 
-        to ensure renewal will work with no unexpected errors later.
+    to ensure renewal will work with no unexpected errors later.
 
 Notes:
 
