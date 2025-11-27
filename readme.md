@@ -81,3 +81,5 @@ Notes
     The script is fully interactive and validates every important input.
 
     Errors stop the script immediately to prevent partial or broken setups.
+    
+    After the update you can check verify the installation with "snap list"
