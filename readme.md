@@ -3,7 +3,7 @@ Certbot + Hetzner DNS Automation Script
 The script automates the complete setup of Certbot (Snap version) with the Hetzner DNS plugin that targets new DNS Challenge Endpoint, handles conflicts with the APT version of Certbot, configures credentials, orders the certificate, and verifies renewal.
 
 Script must be executed with sudo rights(either as sudo or root),
-It is advised beforehand to extended the default wait time limit(30s), because sometimes depending on bandwidth/server it takes more than 30s for DNS Challenges to complete.
+It is recommended if on the first run certificate order fails, to extended the default wait time limit(30s), because sometimes depending on bandwidth/server it takes more than 30s for DNS Challenges to complete.
 If DNS Challenge doesn't complete before the time defined, certbot will register a fail certificate order and entire certificate renewal/order process will fail.
 Recommended is either 60s or 75s.
 You can update the default wait time by appending  dns-hetzner-cloud-propagation-seconds = 60 in /etc/letsencrypt/cli.ini
