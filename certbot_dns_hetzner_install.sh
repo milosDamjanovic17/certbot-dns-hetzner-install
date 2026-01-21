@@ -1,22 +1,6 @@
 #!/usr/bin/env bash
 
-# CLI Params
-AUTO_YES=false
-
-while getopts ":t:d:i:y" opt; do
-  case "$opt" in
-    t) HETZNER_TOKEN="$OPTARG" ;;     # Hetzner API token
-    d) ENTERED_DOMAIN="$OPTARG" ;;    # Domain
-    i) INI_PATH="$OPTARG" ;;          # Custom ini path
-    y) AUTO_YES=true ;;               # Auto-confirm prompts
-    *)
-      echo "Usage: $0 [-t token] [-d domain] [-i ini_path] [-y]"
-      exit 1
-      ;;
-  esac
-done
-
-# check if APT version existss
+# check if APT version existsss
 echo "===> Checking if APT based certbot exists"
 
 if dpkg -l | grep -q "ii  certbot"; then
@@ -35,7 +19,6 @@ if [[ "$HAS_APT_CERTBOT" == true ]]; then
    echo "===> This will conflict with the Snap version"
 
    while true; do
-      [[ "$AUTO_YES" == true ]] && REMOVE_APT="y"
       read -p "Do you want to remove the APT Certbot package? (y/n): " REMOVE_APT
 
       case "$REMOVE_APT" in
@@ -66,7 +49,6 @@ if ! command -v snap >/dev/null 2>&1; then
    echo "===> snapd is NOT installed"
    
    while true; do
-      [[ "$AUTO_YES" == true ]] && answer="y"
       read -p "===> Do you want to install snapd? (y/n): " answer
 
       case $answer in
@@ -129,11 +111,9 @@ else
 fi
 
 # Prompt user to enter DNS API token and create .ini file
-if [[ -z "${HETZNER_TOKEN:-}" ]]; then
-  echo
-  echo "===> Enter your Hetzner DNS Api Token (NO QUOTES):"
-  read -r HETZNER_TOKEN
-fi
+echo
+echo "===> Enter your Hetzner DNS Api Token (NO QUOTES):"
+read -r HETZNER_TOKEN
 
 # check that the token ain't empty
 while [[ -z "$HETZNER_TOKEN" ]]; do
@@ -141,45 +121,43 @@ while [[ -z "$HETZNER_TOKEN" ]]; do
     read -r HETZNER_TOKEN
 done
 
-if [[ -z "${INI_PATH:-}" ]]; then
-   echo
-   echo "===> Do you want to store credentials in the default path(y|n):"
-   echo "/etc/letsencrypt/hetzner-cloud.ini ?"
+echo
+echo "===> Do you want to store credentials in the default path(y|n):"
+echo "/etc/letsencrypt/hetzner-cloud.ini ?"
 
-   # ask user for y/n with validation loop
-   while true; do
-      read -p "(y|n) " yn
-      case "$yn" in
-         y|Y)
-            INI_PATH="/etc/letsencrypt/hetzner-cloud.ini"
+# ask user for y/n with validation loop
+while true; do
+   read -p "(y|n) " yn
+   case "$yn" in
+      y|Y)
+          INI_PATH="/etc/letsencrypt/hetzner-cloud.ini"
+          break
+          ;;
+      n|N)
+         # ask for custom path and VALIDATE, WICHTIG! Path must exist!
+         while true; do
+            read -r -p "===> Enter the ABSOLUTE path to hetzner-cloud.ini or other .ini where you want to store the token (file MUST already exist):  " custom_path
+
+            if [[ -z "$custom_path" ]]; then
+               echo "===> PATH cannot be empty. Try again....."
+               continue
+            fi
+            # Validate that path exists
+            #dir=$(dirname "$custom_path")
+            if [[ ! -f "$custom_path" ]]; then
+               echo "===> File '$custom_path' does NOT exist. Enter a valid path."
+               continue
+            fi
+
+            INI_PATH="$custom_path"
             break
-            ;;
-         n|N)
-            # ask for custom path and VALIDATE, WICHTIG! Path must exist!
-            while true; do
-               read -r -p "===> Enter the ABSOLUTE path to hetzner-cloud.ini or other .ini where you want to store the token (file MUST already exist):  " custom_path
-
-               if [[ -z "$custom_path" ]]; then
-                  echo "===> PATH cannot be empty. Try again....."
-                  continue
-               fi
-               # Validate that path exists
-               #dir=$(dirname "$custom_path")
-               if [[ ! -f "$custom_path" ]]; then
-                  echo "===> File '$custom_path' does NOT exist. Enter a valid path."
-                  continue
-               fi
-
-               INI_PATH="$custom_path"
-               break
-            done
-            break
-            ;;
-         *)
-            echo "===> Invalid option. Enter 'y' or 'n' (or Ctrl+C to exit)."
-      esac
-   done
-fi
+         done
+         break
+         ;;
+      *)
+         echo "===> Invalid option. Enter 'y' or 'n' (or Ctrl+C to exit)."
+   esac
+done
 
 echo
 echo "===> Writing API token to: $INI_PATH"
@@ -198,33 +176,30 @@ fi
 echo "Credentials stored successfully and permissions locked down."
 
 # Certificate request logic
-if [[ -z "${ENTERED_DOMAIN:-}" ]]; then
-   while true; do
-      read -p "Enter the domain for the certificate (e.g., '*.mydomain.com' for wildcard or 'example.mydomain.com' for single domain): " ENTERED_DOMAIN
-      
-      # sanity check
-      if [[ -z "$ENTERED_DOMAIN" ]]; then
-         echo "Domain can't be empty. Try again...."
-         continue
-      fi
+while true; do
+   read -p "Enter the domain for the certificate (e.g., '*.mydomain.com' for wildcard or 'example.mydomain.com' for single domain): " ENTERED_DOMAIN
+   
+   # sanity check
+   if [[ -z "$ENTERED_DOMAIN" ]]; then
+      echo "Domain can't be empty. Try again...."
+      continue
+   fi
 
-      echo
-      echo "===> You entered: $ENTERED_DOMAIN"
-      [[ "$AUTO_YES" == true ]] && CONFIRM_DOMAIN="y"
-      read -p "Is the domain correct? y/n: " CONFIRM_DOMAIN
+   echo
+   echo "===> You entered: $ENTERED_DOMAIN"
+   read -p "Is the domain correct? y/n: " CONFIRM_DOMAIN
 
-      case "$CONFIRM_DOMAIN" in
-         y|Y)
-            break
-            ;;
-         n|N)
-            echo "Type the domain name again."
-            ;;
-         *)
-            echo "Invalid option. Enter 'y' or 'n' (or Ctrl+C to exit)."
-      esac
-   done
-fi
+   case "$CONFIRM_DOMAIN" in
+      y|Y)
+         break
+         ;;
+      n|N)
+         echo "Type the domain name again."
+         ;;
+      *)
+         echo "Invalid option. Enter 'y' or 'n' (or Ctrl+C to exit)."
+   esac
+done
 
 # Request the Certificate to run based on the INI_PATH
 echo
