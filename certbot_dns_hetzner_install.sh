@@ -35,29 +35,34 @@ if [[ "$HAS_APT_CERTBOT" == true ]]; then
    echo "===> This will conflict with the Snap version"
 
    while true; do
-      [[ "$AUTO_YES" == true ]] && REMOVE_APT="y"
+   if [[ "$AUTO_YES" == true ]]; then
+      REMOVE_APT="y"
+      echo "Do you want to remove the APT Certbot package? (y/n): y"
+   else
       read -p "Do you want to remove the APT Certbot package? (y/n): " REMOVE_APT
+   fi
 
-      case "$REMOVE_APT" in
-         y|Y)
-            echo "===> Removing APT Certbot (configs not purged)"
-            if sudo apt remove -y certbot; then
-               echo "===> APT version removed successfully."
-            else
-               echo "===> ERROR: Failed to remove APT Certbot. Resolve this manually and re-run the script."
-               exit 1
-            fi
-            break
-            ;;
-         n|N)
-            echo "===> Cannot continue with APT certbot isntalled. Exitin...."
-            exit 1
-            ;;
-         *)
-            echo "===> Invalid option. Enter 'y' or 'n' (or Ctrl+C to exit)"
-            ;;
-      esac
+   case "$REMOVE_APT" in
+      y|Y)
+         echo "===> Removing APT Certbot (configs not purged)"
+         if sudo apt remove -y certbot; then
+         echo "===> APT version removed successfully."
+         else
+         echo "===> ERROR: Failed to remove APT Certbot. Resolve this manually and re-run the script."
+         exit 1
+         fi
+         break
+         ;;
+      n|N)
+         echo "===> Cannot continue with APT certbot installed. Exiting...."
+         exit 1
+         ;;
+      *)
+         echo "===> Invalid option. Enter 'y' or 'n' (or Ctrl+C to exit)"
+         ;;
+   esac
    done
+
 fi
 
 
