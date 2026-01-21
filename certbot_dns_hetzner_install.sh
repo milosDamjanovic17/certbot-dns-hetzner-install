@@ -16,6 +16,10 @@ while getopts ":t:d:i:y" opt; do
   esac
 done
 
+echo "HETZNER TOKEN: $HETZNER_TOKEN"
+echo "ENTERED_DOMAIN: $ENTERED_DOMAIN"
+echo "AUTO_YES: $AUTO_YES"
+
 # check if APT version existss
 echo "===> Checking if APT based certbot exists"
 
@@ -148,12 +152,15 @@ done
 
 if [[ -z "${INI_PATH:-}" ]]; then
    echo
-   echo "===> Do you want to store credentials in the default path(y|n):"
-   echo "/etc/letsencrypt/hetzner-cloud.ini ?"
 
    # ask user for y/n with validation loop
    while true; do
-      read -p "(y|n) " yn
+      if [[ "$AUTO_YES" == true ]]; then
+         yn="y"
+      else
+         echo "===> Do you want to store credentials in the default path(y|n):"
+         echo "/etc/letsencrypt/hetzner-cloud.ini ?"
+         read -p "(y|n) " yn
       case "$yn" in
          y|Y)
             INI_PATH="/etc/letsencrypt/hetzner-cloud.ini"
