@@ -3,20 +3,25 @@
 # CLI Params
 AUTO_YES=false
 
-while getopts ":t:d:i:y" opt; do
+# EMAIL="it.de@assistdigital.com"
+EMAIL="test@email.com"
+
+while getopts ":t:d:i:m:y" opt; do
   case "$opt" in
     t) HETZNER_TOKEN="$OPTARG" ;;     # Hetzner API token
     d) ENTERED_DOMAIN="$OPTARG" ;;    # Domain
     i) INI_PATH="$OPTARG" ;;          # Custom ini path
+    m) EMAIL="$OPTARG" ;;             # Email
     y) AUTO_YES=true ;;               # Auto-confirm prompts
     *)
-      echo "Usage: $0 [-t token] [-d domain] [-i ini_path] [-y]"
+      echo "Usage: $0 [-t token] [-d domain] [-i ini_path] [-m email] [-y]"
       exit 1
       ;;
   esac
 done
 
 echo "HETZNER TOKEN: $HETZNER_TOKEN"
+echo "EMAIL: $EMAIL"
 echo "ENTERED_DOMAIN: $ENTERED_DOMAIN"
 echo "AUTO_YES: $AUTO_YES"
 
@@ -161,6 +166,7 @@ if [[ -z "${INI_PATH:-}" ]]; then
          echo "===> Do you want to store credentials in the default path(y|n):"
          echo "/etc/letsencrypt/hetzner-cloud.ini ?"
          read -p "(y|n) " yn
+      fi
       case "$yn" in
          y|Y)
             INI_PATH="/etc/letsencrypt/hetzner-cloud.ini"
@@ -243,9 +249,9 @@ echo
 echo "===> Requesting certificate for $ENTERED_DOMAIN ..."
 
 if [[ "$INI_PATH" == "/etc/letsencrypt/hetzner-cloud.ini" ]]; then
-    sudo certbot certonly --agree-tos --authenticator dns-hetzner-cloud -d "$ENTERED_DOMAIN"
+    sudo certbot certonly --agree-tos --email "$EMAIL" --authenticator dns-hetzner-cloud -d "$ENTERED_DOMAIN"
 else
-    sudo certbot certonly --agree-tos --dns-hetzner-cloud-credentials "$INI_PATH" --authenticator dns-hetzner-cloud -d "$ENTERED_DOMAIN"
+    sudo certbot certonly --agree-tos --email "$EMAIL" --dns-hetzner-cloud-credentials "$INI_PATH" --authenticator dns-hetzner-cloud -d "$ENTERED_DOMAIN"
 fi
 
 # sanity check if certbot command succeeded
