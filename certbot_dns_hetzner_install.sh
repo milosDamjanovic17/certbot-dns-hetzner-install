@@ -118,6 +118,134 @@ run_or_fail_check() {
    fi
 }
 
+# -------------------------------
+# NGINX: update SSL paths in active sites (sites-enabled)
+# -------------------------------
+
+detect_nginx() {
+  command -v nginx >/dev/null 2>&1 || systemctl list-unit-files 2>/dev/null | grep -oE '^nginx\.service'
+}
+
+escape_regex() {
+  # Escape dots for grep regex usage
+  echo "$1" | sed 's/\./\\./g'
+}
+
+nginx_backup_and_edit_file() {
+  local file="$1"
+  local fullchain="$2"
+  local privkey="$3"
+  local ts="$4"
+
+  # backup
+  sudo cp -a "$file" "${file}.bak.${ts}"
+
+  # update ssl paths (only lines that already exist)
+  sudo sed -i -E \
+    -e "s|^(\s*ssl_certificate\s+).+;|\1${fullchain};|g" \
+    -e "s|^(\s*ssl_certificate_key\s+).+;|\1${privkey};|g" \
+    "$file"
+}
+
+nginx_restore_backups() {
+  local ts="$1"
+  # restore any backups created in this run (same timestamp)
+  # find backups and restore to original name
+  while IFS= read -r bak; do
+    orig="${bak%.bak.${ts}}"
+    echo "===> Restoring backup: $orig"
+    sudo cp -a "$bak" "$orig"
+  done < <(sudo find /etc/nginx -type f -name "*.bak.${ts}" 2>/dev/null || true)
+}
+
+nginx_update_ssl_paths_active_sites() {
+  local domain="$1"
+  local fullchain="$2"
+  local privkey="$3"
+  local ts
+  ts="$(date +%Y%m%d_%H%M%S)"
+
+  if ! detect_nginx; then
+    echo "===> nginx not detected. Skipping nginx TLS config update."
+    return 0
+  fi
+
+  if [[ ! -d /etc/nginx/sites-enabled ]]; then
+    echo "===> nginx detected but /etc/nginx/sites-enabled not found. Skipping."
+    return 0
+  fi
+
+  # domain matching (wildcard-aware)
+  local base="$domain"
+  base="${base#\*\.}"  # strips "*." only if present
+
+  local domain_re base_re
+  domain_re="$(escape_regex "$domain")"
+  base_re="$(escape_regex "$base")"
+
+  echo "===> nginx detected. Scanning ACTIVE sites (/etc/nginx/sites-enabled) for domain match: $domain"
+
+  # Find active config files (resolve symlinks to real targets)
+  mapfile -t enabled_files < <(ls -1 /etc/nginx/sites-enabled 2>/dev/null || true)
+
+  if [[ ${#enabled_files[@]} -eq 0 ]]; then
+    echo "===> No active nginx site files found in /etc/nginx/sites-enabled. Skipping."
+    return 0
+  fi
+
+  local matched_any=false
+
+  for f in "${enabled_files[@]}"; do
+    local link="/etc/nginx/sites-enabled/$f"
+    # Resolve symlink target (important!)
+    local target
+    target="$(readlink -f "$link" 2>/dev/null || true)"
+
+    # Skip if not a real file
+    if [[ -z "$target" || ! -f "$target" ]]; then
+      continue
+    fi
+
+    # Only touch configs that match server_name with domain or base domain
+    if ! sudo grep -qE "^\s*server_name\s+.*(\b${domain_re}\b|\b${base_re}\b)" "$target"; then
+      continue
+    fi
+
+    # Only touch files that already have ssl_certificate directives
+    if ! sudo grep -qE '^\s*ssl_certificate\s+' "$target"; then
+      echo "===> Matched domain but no ssl_certificate in: $target (skipping)"
+      continue
+    fi
+    if ! sudo grep -qE '^\s*ssl_certificate_key\s+' "$target"; then
+      echo "===> Matched domain but no ssl_certificate_key in: $target (skipping)"
+      continue
+    fi
+
+    matched_any=true
+    echo "===> Updating nginx TLS paths in: $target"
+    nginx_backup_and_edit_file "$target" "$fullchain" "$privkey" "$ts"
+  done
+
+  if [[ "$matched_any" != true ]]; then
+    echo "===> No active nginx configs matched domain + had SSL directives. Skipping nginx TLS update."
+    return 0
+  fi
+
+  echo "===> Validating nginx config (nginx -t)..."
+  if sudo nginx -t; then
+    echo "===> Reloading nginx..."
+    sudo systemctl reload nginx
+    echo "===> nginx TLS path update complete."
+    return 0
+  else
+    echo "===> ERROR: nginx validation failed after edits. Rolling back..."
+    nginx_restore_backups "$ts"
+    echo "===> Rollback done. Exiting with error."
+    return 1
+  fi
+}
+
+
 # snapd core, certbot and hetzner plugin install
 run_or_fail_check "sudo snap install core" "Installing snap core"
 run_or_fail_check "sudo snap install --classic certbot" "Installing Certbot"
@@ -261,6 +389,16 @@ else
     echo "ERROR: Certificate request failed for $ENTERED_DOMAIN"
     exit 1
 fi
+
+# Run nginx TLS config update (active sites only)
+CERT_NAME="$ENTERED_DOMAIN"
+CERT_NAME="${CERT_NAME#\*\.}"  # strip "*." only if it's a wildcard
+
+CERT_FULLCHAIN="/etc/letsencrypt/live/$CERT_NAME/fullchain.pem"
+CERT_PRIVKEY="/etc/letsencrypt/live/$CERT_NAME/privkey.pem"
+
+nginx_update_ssl_paths_active_sites "$ENTERED_DOMAIN" "$CERT_FULLCHAIN" "$CERT_PRIVKEY" || exit 1
+# -------------------------------
 
 
 # check if certificate exists and run dry run renewal
