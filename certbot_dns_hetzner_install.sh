@@ -249,9 +249,9 @@ echo
 echo "===> Requesting certificate for $ENTERED_DOMAIN ..."
 
 if [[ "$INI_PATH" == "/etc/letsencrypt/hetzner-cloud.ini" ]]; then
-    sudo certbot certonly --agree-tos --email "$EMAIL" --authenticator dns-hetzner-cloud -d "$ENTERED_DOMAIN"
+    sudo certbot certonly --agree-tos --noninteractive --email "$EMAIL" --authenticator dns-hetzner-cloud -d "$ENTERED_DOMAIN"
 else
-    sudo certbot certonly --agree-tos --email "$EMAIL" --dns-hetzner-cloud-credentials "$INI_PATH" --authenticator dns-hetzner-cloud -d "$ENTERED_DOMAIN"
+    sudo certbot certonly --agree-tos --noninteractive --email "$EMAIL" --dns-hetzner-cloud-credentials "$INI_PATH" --authenticator dns-hetzner-cloud -d "$ENTERED_DOMAIN"
 fi
 
 # sanity check if certbot command succeeded
