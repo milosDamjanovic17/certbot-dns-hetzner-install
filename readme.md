@@ -76,10 +76,21 @@ What the Script Does
 
     to ensure renewal will work with no unexpected errors later.
 
+7. How to run the script
+
+    Interactive mode: ./certbot_dns_hetzner_install.sh
+    Automated mode: ./certbot_dns_hetzner_install.sh -y -d <*.example.cloud> -t <HETZNER_API_TOKEN>
+
 Notes
 
-    The script is fully interactive and validates every important input.
+    Script flags explanation:
+        -t HETZNER_TOKEN                   # Hetzner API token => example -t <YOUR_HETZNER_API_TOKEN>
+        -d ENTERED_DOMAIN="$OPTARG" ;;     # Domain            => example -d *.mydomain.cloud
+        -i INI_PATH ;;                     # Custom ini path   => example -i /etc/path/to/your/directory
+        -m EMAIL ;;                        # Email             => example -m email@test.com
+        -y AUTO_YES ;;                     # Auto-confirm      => skips the interaction with certbot
 
     Errors stop the script immediately to prevent partial or broken setups.
     
+
     After the update you can check verify the installation with "snap list"
