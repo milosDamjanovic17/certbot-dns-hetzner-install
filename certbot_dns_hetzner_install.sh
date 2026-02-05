@@ -266,14 +266,19 @@ fi
 # check if certificate exists and run dry run renewal
 # *****DUE TO CHANGE since there are two ways to implement this, either by checking the absolute path or via certbot certificates command
 # pattern for checking the absolute path, before that we have to strip the entered domain because searching the path with *. will result an error, we have to remove *. part of the string
-ENTERED_DOMAIN="${ENTERED_DOMAIN#??}"
-CERT_PATH="/etc/letsencrypt/live/$ENTERED_DOMAIN/fullchain.pem"
+ABSOLUTE_DOMAIN="${ENTERED_DOMAIN}" # for checking the absolute-path domain
+ABSOULTE_DOMAIN_PATH="/etc/letsencrypt/live/$ABSOLUTE_DOMAIN/fullchain.pem"
+STRIPPED_DOMAIN="${ENTERED_DOMAIN#??}" # for checking the wildcard domain
+STRIPPED_DOMAIN_PATH="/etc/letsencrypt/live/$STRIPPED_DOMAIN/fullchain.pem"
+# CERT_PATH="/etc/letsencrypt/live/$ENTERED_DOMAIN/fullchain.pem"
 
 echo
 echo "Verifying certificate existence and readability..."
 
-if [[ -f "$CERT_PATH" && -r "$CERT_PATH" ]]; then
-    echo "===> Certificate file exists and is readable!: $CERT_PATH"
+if [[ -f "$ABSOULTE_DOMAIN_PATH" && -r "$ABSOULTE_DOMAIN_PATH" ]]; then
+    echo "===> Certificate file exists and is readable!: $ABSOULTE_DOMAIN_PATH"
+elif [[ -f "$STRIPPED_DOMAIN_PATH" && -r "$STRIPPED_DOMAIN_PATH" ]]; then
+    echo "===> Certificate file exists and is readable!: $STRIPPED_DOMAIN_PATH"
 else
     echo "===> ERROR: Certificate file NOT found or not readable: $CERT_PATH"
     echo "===> Something went wrong with the certificate issuance. Exiting."
