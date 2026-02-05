@@ -268,7 +268,7 @@ fi
 # pattern for checking the absolute path, before that we have to strip the entered domain because searching the path with *. will result an error, we have to remove *. part of the string
 ABSOLUTE_DOMAIN="${ENTERED_DOMAIN}" # for checking the absolute-path domain
 ABSOULTE_DOMAIN_PATH="/etc/letsencrypt/live/$ABSOLUTE_DOMAIN/fullchain.pem"
-STRIPPED_DOMAIN="${ENTERED_DOMAIN#??}" # for checking the wildcard domain
+STRIPPED_DOMAIN="${ENTERED_DOMAIN#??}" # for checking the wildcard domain - #?? strips the *. part of the name
 STRIPPED_DOMAIN_PATH="/etc/letsencrypt/live/$STRIPPED_DOMAIN/fullchain.pem"
 # CERT_PATH="/etc/letsencrypt/live/$ENTERED_DOMAIN/fullchain.pem"
 
